@@ -1,3 +1,5 @@
+[← README に戻る](../../../README.md)
+
 # 技術設計ドキュメント
 
 ## Campus Life as a Service（CLaaS）
@@ -2022,3 +2024,7 @@ describe('Syllabus Analyzer - ラウンドトリップ特性', () => {
 | Controller層 | 80%以上 |
 | Repository層 | 70%以上 |
 | 全体 | 80%以上 |
+
+---
+
+[← README に戻る](../../../README.md)
