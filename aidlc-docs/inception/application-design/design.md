@@ -52,118 +52,142 @@
 
 ## アーキテクチャ
 
-### システム全体構成
+### C4 Level 1 — システムコンテキスト図
+
+> 「CLaaSが誰と、何と繋がっているか」の全体像
 
 ```mermaid
-graph TB
-    subgraph クライアント
-        APP[React Native App]
-    end
+C4Context
+    title CLaaS — システムコンテキスト図
 
-    subgraph APIゲートウェイ
-        GW[API Gateway / Nginx]
-    end
+    Person(student, "大学生", "ぼっちでも楽単・空きコマ・\nコミュニティを活用したい")
+    Person(partner, "連携企業", "大学生の空きコマに\nアプローチしたい\n(映画館・マイナビ等)")
 
-    subgraph バックエンドサービス
-        AUTH[Auth Service]
-        POST[Post Service]
-        EXAM[Past Exam Service]
-        SYLLABUS[Syllabus Analyzer Service]
-        TOKEN[Token Service]
-        TICKET[Ticket Manager Service]
-        CONTENT[Content Recommender Service]
-        NOTIFY[Notification Service]
-        UNIV[University/Course Service]
-        TIMETABLE[Timetable Generator Service]
-        PROXY[Proxy Manager Service]
-        MATCH[Matching Service]
-        CHAT[Chat Service]
-        PARTNER[Partner Service]
-        MARKET[Marketplace Service]
-        MAP[Map Service]
-        ANALYTICS[Analytics Service]
-    end
+    System(claas, "CLaaS", "Campus Life as a Service\n大学生活を最適化しすぎて\n人をダメにするプラットフォーム")
 
-    subgraph データストア
-        PG[(PostgreSQL)]
-        REDIS[(Redis)]
-        S3[(AWS S3)]
-    end
+    System_Ext(bedrock, "Amazon Bedrock\n(Claude 3.5 Sonnet)", "シラバス解析・\nAI時間割生成")
+    System_Ext(stripe, "Stripe", "2学期目以降の\n課金処理")
 
-    subgraph 外部サービス
-        OPENAI[OpenAI GPT-4o]
-        FCM[Firebase Cloud Messaging]
-        CLAM[ClamAV]
-        GMAPS[Google Maps API]
-        STRIPE[Stripe]
-        SOCKETIO[Socket.io Server]
-    end
-
-    APP --> GW
-    GW --> AUTH
-    GW --> POST
-    GW --> EXAM
-    GW --> SYLLABUS
-    GW --> TOKEN
-    GW --> TICKET
-    GW --> CONTENT
-    GW --> NOTIFY
-    GW --> UNIV
-    GW --> TIMETABLE
-    GW --> PROXY
-    GW --> MATCH
-    GW --> CHAT
-    GW --> PARTNER
-    GW --> MARKET
-    GW --> MAP
-    GW --> ANALYTICS
-
-    AUTH --> PG
-    AUTH --> REDIS
-    POST --> PG
-    EXAM --> PG
-    EXAM --> S3
-    EXAM --> CLAM
-    SYLLABUS --> PG
-    SYLLABUS --> OPENAI
-    TOKEN --> PG
-    TICKET --> PG
-    TICKET --> REDIS
-    CONTENT --> PG
-    NOTIFY --> PG
-    NOTIFY --> FCM
-    UNIV --> PG
-    TIMETABLE --> PG
-    TIMETABLE --> OPENAI
-    PROXY --> PG
-    PROXY --> REDIS
-    MATCH --> PG
-    MATCH --> REDIS
-    CHAT --> PG
-    CHAT --> REDIS
-    CHAT --> SOCKETIO
-    PARTNER --> PG
-    MARKET --> PG
-    MARKET --> S3
-    MARKET --> STRIPE
-    MAP --> GMAPS
-    ANALYTICS --> PG
-    ANALYTICS --> REDIS
+    Rel(student, claas, "楽単情報・過去問共有\n空きコマ活用・マッチング\nガクチカクレジット獲得")
+    Rel(partner, claas, "クーポン発行\n空きコマ統計データ取得")
+    Rel(claas, bedrock, "AI解析リクエスト")
+    Rel(claas, stripe, "決済処理")
 ```
 
-### レイヤードアーキテクチャ
+---
 
-各サービスは以下の3層構造を採用する：
+### C4 Level 2 — コンテナ図
 
+> 「CLaaSの内部がどんなシステムで構成されているか」
+
+```mermaid
+C4Container
+    title CLaaS — コンテナ図（AWSサーバーレス構成）
+
+    Person(student, "大学生", "スマートフォン利用")
+    Person(partner, "連携企業", "ダッシュボード利用")
+
+    System_Boundary(claas, "CLaaS on AWS") {
+
+        Container(app, "React Native App", "Expo / TypeScript", "iOS・Android対応\nモバイルアプリ")
+
+        Container(apigw, "Amazon API Gateway", "HTTP API", "REST APIのルーティング\nCognito認証・スロットリング")
+
+        Container(appsync, "AWS AppSync", "WebSocket", "リアルタイムチャット\nマッチング通知")
+
+        Container(lambda, "AWS Lambda + Hono", "TypeScript", "17のマイクロサービス\n(楽単/過去問/AI/クレジット/\nマッチング/代返/マーケット等)")
+
+        ContainerDb(aurora, "Aurora Serverless v2", "PostgreSQL互換", "ユーザー・投稿・取引\nクレジット履歴等")
+
+        ContainerDb(valkey, "ElastiCache for Valkey", "Redis互換", "セッション・レート制限\nキャッシュ")
+
+        ContainerDb(s3, "Amazon S3 + CloudFront", "オブジェクトストレージ", "過去問PDF・教材写真\nCDN配信")
+
+        ContainerDb(opensearch, "OpenSearch Serverless", "全文検索エンジン", "楽単情報・過去問\n全文検索インデックス")
+
+        Container(cognito, "Amazon Cognito", "認証サービス", "大学メール認証\nJWT発行・管理")
+
+        Container(eventbridge, "EventBridge + SQS", "イベントバス", "非同期処理\nクレジット付与・通知キュー")
+
+        Container(bedrock_c, "Amazon Bedrock", "生成AI", "シラバス解析\nAI時間割生成")
+
+        Container(notify, "SNS + Pinpoint", "通知サービス", "プッシュ通知\nメール通知")
+    }
+
+    Rel(student, app, "利用")
+    Rel(partner, apigw, "企業ダッシュボードAPI")
+    Rel(app, cognito, "認証")
+    Rel(app, apigw, "REST API呼び出し", "HTTPS")
+    Rel(app, appsync, "WebSocket接続", "チャット・通知")
+    Rel(apigw, lambda, "ルーティング")
+    Rel(lambda, aurora, "読み書き", "Prisma ORM")
+    Rel(lambda, valkey, "キャッシュ・レート制限")
+    Rel(lambda, s3, "ファイル保存・取得")
+    Rel(lambda, opensearch, "全文検索")
+    Rel(lambda, bedrock_c, "AI解析リクエスト")
+    Rel(lambda, eventbridge, "イベント発行")
+    Rel(eventbridge, notify, "通知トリガー")
+    Rel(eventbridge, lambda, "非同期処理")
 ```
-Controller層  →  Service層  →  Repository層  →  Database
-     ↑                ↑
-  HTTP/REST      ビジネスロジック
+
+---
+
+### C4 Level 3 — コンポーネント図（Lambda内部）
+
+> 「Lambdaの中の17サービスがどう分類されているか」
+
+```mermaid
+C4Component
+    title CLaaS — Lambdaコンポーネント図
+
+    Container_Boundary(lambda, "AWS Lambda + Hono（17サービス）") {
+
+        Component(auth_svc, "Auth Service", "Cognito連携", "大学メール認証\nプロフィール管理")
+
+        Component(core, "コア学習サービス群", "Hono / Prisma",
+            "Post Service: 楽単情報\nPast Exam Service: 過去問\nSyllabus Analyzer: シラバス解析\nTimetable Generator: AI時間割\nUniversity Service: 大学・授業DB")
+
+        Component(credit, "ガクチカクレジット群", "Hono / Prisma",
+            "Token Service: クレジット管理\nTicket Manager: 出席票QR\n不正検出・残高管理")
+
+        Component(community, "コミュニティ群", "Hono / AppSync",
+            "Matching Service: 空きコママッチング\nProxy Manager: 代返\nChat Service: リアルタイムチャット")
+
+        Component(market, "マーケットプレイス群", "Hono / Prisma",
+            "Marketplace Service: 教材売買\n評価・Trust_Score管理")
+
+        Component(platform, "プラットフォーム群", "Hono / AWS SDK",
+            "Partner Service: 企業連携・クーポン\nAnalytics Service: 空きコマ統計\nContent Recommender: コンテンツ提案\nNotification Service: 通知\nMap Service: 地図")
+    }
+
+    ContainerDb(aurora, "Aurora Serverless v2", "DB", "")
+    ContainerDb(valkey, "ElastiCache for Valkey", "Cache", "")
+    ContainerDb(bedrock_c, "Amazon Bedrock", "AI", "")
+
+    Rel(auth_svc, aurora, "ユーザーデータ")
+    Rel(core, aurora, "投稿・授業データ")
+    Rel(core, bedrock_c, "AI解析")
+    Rel(credit, aurora, "クレジット取引")
+    Rel(credit, valkey, "レート制限")
+    Rel(community, aurora, "マッチング・代返データ")
+    Rel(community, valkey, "セッション")
+    Rel(market, aurora, "取引データ")
+    Rel(platform, aurora, "統計・クーポンデータ")
+    Rel(platform, valkey, "統計キャッシュ")
 ```
 
-- **Controller層**: HTTPリクエスト/レスポンスの処理、入力バリデーション
-- **Service層**: ビジネスロジック、トランザクション管理
-- **Repository層**: データアクセス抽象化、SQLクエリ
+---
+
+### アーキテクチャの特徴
+
+| 特徴 | 採用技術 | 理由 |
+|---|---|---|
+| **完全サーバーレス** | Lambda + Aurora Serverless v2 | スケールゼロ、コスト最適化 |
+| **高速API** | Hono on Lambda | Expressの約10倍の起動速度 |
+| **AWSネイティブAI** | Amazon Bedrock (Claude 3.5 Sonnet) | データがAWS外に出ない |
+| **イベント駆動** | EventBridge + SQS | 非同期処理、疎結合 |
+| **リアルタイム** | AWS AppSync WebSocket | マネージドWebSocket |
+| **IaC** | AWS CDK (TypeScript) | インフラをコードで管理 |
 
 ---
 
