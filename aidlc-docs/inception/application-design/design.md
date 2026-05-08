@@ -58,18 +58,18 @@
 
 ```mermaid
 C4Context
-    title CLaaS — システムコンテキスト図
+    title CLaaS システムコンテキスト図
 
-    Person(student, "大学生", "ぼっちでも楽単・空きコマ・\nコミュニティを活用したい")
-    Person(partner, "連携企業", "大学生の空きコマに\nアプローチしたい\n(映画館・マイナビ等)")
+    Person(student, "大学生", "楽単・空きコマ・コミュニティを活用したい")
+    Person(partner, "連携企業", "大学生の空きコマにアプローチしたい")
 
-    System(claas, "CLaaS", "Campus Life as a Service\n大学生活を最適化しすぎて\n人をダメにするプラットフォーム")
+    System(claas, "CLaaS", "大学生活を最適化しすぎて人をダメにするプラットフォーム")
 
-    System_Ext(bedrock, "Amazon Bedrock\n(Claude 3.5 Sonnet)", "シラバス解析・\nAI時間割生成")
-    System_Ext(stripe, "Stripe", "2学期目以降の\n課金処理")
+    System_Ext(bedrock, "Amazon Bedrock", "シラバス解析・AI時間割生成")
+    System_Ext(stripe, "Stripe", "2学期目以降の課金処理")
 
-    Rel(student, claas, "楽単情報・過去問共有\n空きコマ活用・マッチング\nガクチカクレジット獲得")
-    Rel(partner, claas, "クーポン発行\n空きコマ統計データ取得")
+    Rel(student, claas, "楽単共有・空きコマ活用・マッチング・クレジット獲得")
+    Rel(partner, claas, "クーポン発行・空きコマ統計データ取得")
     Rel(claas, bedrock, "AI解析リクエスト")
     Rel(claas, stripe, "決済処理")
 ```
@@ -78,49 +78,37 @@ C4Context
 
 ### C4 Level 2 — コンテナ図
 
-> 「CLaaSの内部がどんなシステムで構成されているか」
+> 「CLaaSの内部がどんなAWSサービスで構成されているか」
 
 ```mermaid
 C4Container
-    title CLaaS — コンテナ図（AWSサーバーレス構成）
+    title CLaaS コンテナ図（AWSサーバーレス構成）
 
     Person(student, "大学生", "スマートフォン利用")
     Person(partner, "連携企業", "ダッシュボード利用")
 
     System_Boundary(claas, "CLaaS on AWS") {
-
-        Container(app, "React Native App", "Expo / TypeScript", "iOS・Android対応\nモバイルアプリ")
-
-        Container(apigw, "Amazon API Gateway", "HTTP API", "REST APIのルーティング\nCognito認証・スロットリング")
-
-        Container(appsync, "AWS AppSync", "WebSocket", "リアルタイムチャット\nマッチング通知")
-
-        Container(lambda, "AWS Lambda + Hono", "TypeScript", "17のマイクロサービス\n(楽単/過去問/AI/クレジット/\nマッチング/代返/マーケット等)")
-
-        ContainerDb(aurora, "Aurora Serverless v2", "PostgreSQL互換", "ユーザー・投稿・取引\nクレジット履歴等")
-
-        ContainerDb(valkey, "ElastiCache for Valkey", "Redis互換", "セッション・レート制限\nキャッシュ")
-
-        ContainerDb(s3, "Amazon S3 + CloudFront", "オブジェクトストレージ", "過去問PDF・教材写真\nCDN配信")
-
-        ContainerDb(opensearch, "OpenSearch Serverless", "全文検索エンジン", "楽単情報・過去問\n全文検索インデックス")
-
-        Container(cognito, "Amazon Cognito", "認証サービス", "大学メール認証\nJWT発行・管理")
-
-        Container(eventbridge, "EventBridge + SQS", "イベントバス", "非同期処理\nクレジット付与・通知キュー")
-
-        Container(bedrock_c, "Amazon Bedrock", "生成AI", "シラバス解析\nAI時間割生成")
-
-        Container(notify, "SNS + Pinpoint", "通知サービス", "プッシュ通知\nメール通知")
+        Container(app, "React Native App", "Expo / TypeScript", "iOS・Android対応モバイルアプリ")
+        Container(cognito, "Amazon Cognito", "認証サービス", "大学メール認証・JWT発行")
+        Container(apigw, "Amazon API Gateway", "HTTP API", "REST APIルーティング・スロットリング")
+        Container(appsync, "AWS AppSync", "WebSocket", "リアルタイムチャット・マッチング通知")
+        Container(lambda, "AWS Lambda + Hono", "TypeScript", "17のマイクロサービス群")
+        Container(eventbridge, "EventBridge + SQS", "イベントバス", "非同期処理・クレジット付与・通知キュー")
+        Container(bedrock_c, "Amazon Bedrock", "生成AI", "シラバス解析・AI時間割生成")
+        Container(notify, "SNS + Pinpoint", "通知サービス", "プッシュ通知・メール通知")
+        ContainerDb(aurora, "Aurora Serverless v2", "PostgreSQL互換", "ユーザー・投稿・取引・クレジット履歴")
+        ContainerDb(valkey, "ElastiCache for Valkey", "Redis互換", "セッション・レート制限・キャッシュ")
+        ContainerDb(s3, "Amazon S3 + CloudFront", "オブジェクトストレージ", "過去問PDF・教材写真・CDN配信")
+        ContainerDb(opensearch, "OpenSearch Serverless", "全文検索エンジン", "楽単情報・過去問の全文検索")
     }
 
     Rel(student, app, "利用")
     Rel(partner, apigw, "企業ダッシュボードAPI")
     Rel(app, cognito, "認証")
     Rel(app, apigw, "REST API呼び出し", "HTTPS")
-    Rel(app, appsync, "WebSocket接続", "チャット・通知")
+    Rel(app, appsync, "WebSocket接続")
     Rel(apigw, lambda, "ルーティング")
-    Rel(lambda, aurora, "読み書き", "Prisma ORM")
+    Rel(lambda, aurora, "読み書き")
     Rel(lambda, valkey, "キャッシュ・レート制限")
     Rel(lambda, s3, "ファイル保存・取得")
     Rel(lambda, opensearch, "全文検索")
@@ -134,35 +122,24 @@ C4Container
 
 ### C4 Level 3 — コンポーネント図（Lambda内部）
 
-> 「Lambdaの中の17サービスがどう分類されているか」
+> 「Lambda内の17サービスがどう5グループに分類されているか」
 
 ```mermaid
 C4Component
-    title CLaaS — Lambdaコンポーネント図
+    title CLaaS Lambdaコンポーネント図
 
-    Container_Boundary(lambda, "AWS Lambda + Hono（17サービス）") {
-
-        Component(auth_svc, "Auth Service", "Cognito連携", "大学メール認証\nプロフィール管理")
-
-        Component(core, "コア学習サービス群", "Hono / Prisma",
-            "Post Service: 楽単情報\nPast Exam Service: 過去問\nSyllabus Analyzer: シラバス解析\nTimetable Generator: AI時間割\nUniversity Service: 大学・授業DB")
-
-        Component(credit, "ガクチカクレジット群", "Hono / Prisma",
-            "Token Service: クレジット管理\nTicket Manager: 出席票QR\n不正検出・残高管理")
-
-        Component(community, "コミュニティ群", "Hono / AppSync",
-            "Matching Service: 空きコママッチング\nProxy Manager: 代返\nChat Service: リアルタイムチャット")
-
-        Component(market, "マーケットプレイス群", "Hono / Prisma",
-            "Marketplace Service: 教材売買\n評価・Trust_Score管理")
-
-        Component(platform, "プラットフォーム群", "Hono / AWS SDK",
-            "Partner Service: 企業連携・クーポン\nAnalytics Service: 空きコマ統計\nContent Recommender: コンテンツ提案\nNotification Service: 通知\nMap Service: 地図")
+    Container_Boundary(lambda, "AWS Lambda + Hono") {
+        Component(auth_svc, "Auth Service", "Cognito連携", "大学メール認証・プロフィール管理")
+        Component(core, "コア学習サービス群", "Hono / Prisma / Bedrock", "楽単情報・過去問・シラバス解析・AI時間割・大学授業DB")
+        Component(credit, "ガクチカクレジット群", "Hono / Prisma", "クレジット管理・出席票QR・不正検出")
+        Component(community, "コミュニティ群", "Hono / AppSync", "空きコママッチング・代返・リアルタイムチャット")
+        Component(market, "マーケットプレイス群", "Hono / Prisma", "教材売買・評価・Trust_Score管理")
+        Component(platform, "プラットフォーム群", "Hono / AWS SDK", "企業連携・空きコマ統計・コンテンツ提案・通知・地図")
     }
 
-    ContainerDb(aurora, "Aurora Serverless v2", "DB", "")
-    ContainerDb(valkey, "ElastiCache for Valkey", "Cache", "")
-    ContainerDb(bedrock_c, "Amazon Bedrock", "AI", "")
+    ContainerDb(aurora, "Aurora Serverless v2", "DB", "メインデータストア")
+    ContainerDb(valkey, "ElastiCache for Valkey", "Cache", "セッション・レート制限")
+    ContainerDb(bedrock_c, "Amazon Bedrock", "AI", "Claude 3.5 Sonnet")
 
     Rel(auth_svc, aurora, "ユーザーデータ")
     Rel(core, aurora, "投稿・授業データ")
