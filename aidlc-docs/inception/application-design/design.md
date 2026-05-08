@@ -28,18 +28,25 @@
 | レイヤー | 技術選定 | 選定理由 |
 |---|---|---|
 | フロントエンド | React Native (Expo) | iOS/Android両対応、QRコードスキャン対応 |
-| バックエンド API | Node.js + Express (TypeScript) | 型安全性、エコシステムの豊富さ |
-| データベース | PostgreSQL | リレーショナルデータの整合性、全文検索対応 |
-| キャッシュ | Redis | セッション管理、レート制限、通知キュー |
-| ファイルストレージ | AWS S3 | 過去問PDF・画像の安全な保存 |
-| AI解析 | OpenAI GPT-4o API | シラバス解析・難易度スコア算出・自動時間割生成 |
-| 認証 | JWT + bcrypt | ステートレス認証、パスワードハッシュ化 |
-| 通知 | Firebase Cloud Messaging (FCM) | プッシュ通知のクロスプラットフォーム対応 |
-| ウイルス検査 | ClamAV | アップロードファイルのウイルス検査 |
-| QRコード生成 | qrcode (npm) | Ticket_Code埋め込みQRコード生成 |
-| リアルタイム通信 | Socket.io | チャット・マッチング機能のリアルタイム通信 |
-| 地図 | Google Maps API | 近隣施設検索・地図表示 |
-| 決済 | Stripe | 課金機能（2学期目以降の有料機能） |
+| バックエンド API | **Hono** (TypeScript) on AWS Lambda | Expressの約10倍の高速起動、Edge/Lambda両対応、型安全なRPC |
+| インフラ | **AWS CDK** (TypeScript) | インフラをコードで管理、AWSリソースの一元管理 |
+| API管理 | **Amazon API Gateway** (HTTP API) | Lambda統合、スロットリング、認証オフロード |
+| コンピュート | **AWS Lambda** | サーバーレス、コールドスタート最小化（Hono相性◎） |
+| データベース | **Amazon Aurora Serverless v2** (PostgreSQL互換) | オートスケール、サーバーレス、PostgreSQL互換 |
+| キャッシュ | **Amazon ElastiCache for Valkey** | Redis互換、AWSマネージド、レート制限・セッション管理 |
+| ファイルストレージ | **Amazon S3** + **CloudFront** | 過去問PDF・画像の安全な保存、CDN配信 |
+| AI解析 | **Amazon Bedrock** (Claude 3.5 Sonnet) | AWSネイティブAI、シラバス解析・時間割生成 |
+| 認証 | **Amazon Cognito** | マネージド認証、大学メール検証、JWT発行 |
+| 通知 | **Amazon SNS** + **Amazon Pinpoint** | プッシュ通知・メール通知のAWSネイティブ統合 |
+| リアルタイム通信 | **AWS AppSync** (WebSocket) | マネージドWebSocket、リアルタイムチャット |
+| メッセージキュー | **Amazon SQS** + **Amazon EventBridge** | 非同期処理、イベント駆動アーキテクチャ |
+| 検索 | **Amazon OpenSearch Serverless** | 楽単情報・過去問の全文検索 |
+| ウイルス検査 | **Amazon Macie** + Lambda | S3アップロードファイルの自動スキャン |
+| 地図 | **Amazon Location Service** | AWSネイティブ地図・施設検索 |
+| 決済 | **Stripe** (AWS Marketplace連携) | 課金機能（2学期目以降） |
+| 監視・ログ | **Amazon CloudWatch** + **AWS X-Ray** | 分散トレーシング、パフォーマンス監視 |
+| CI/CD | **AWS CodePipeline** + **AWS CodeBuild** | AWSネイティブCI/CD |
+| IaC | **AWS CDK** (TypeScript) | インフラのコード化、型安全なAWSリソース定義 |
 
 ---
 

@@ -131,17 +131,26 @@ CLaaS — ぼっち大学生をダメにする7つの仕組み
 
 ## 技術スタック
 
-| レイヤー | 技術 |
-|---|---|
-| フロントエンド | React Native (Expo) |
-| バックエンド | Node.js + Express (TypeScript) |
-| データベース | PostgreSQL + Redis |
-| AI | OpenAI GPT-4o |
-| ストレージ | AWS S3 |
-| 通知 | Firebase Cloud Messaging |
-| リアルタイム | Socket.io |
-| 地図 | Google Maps API |
-| 決済 | Stripe |
+> AWSネイティブ構成 + Hono によるサーバーレスアーキテクチャ
+
+| レイヤー | 技術 | ポイント |
+|---|---|---|
+| フロントエンド | React Native (Expo) | iOS/Android両対応 |
+| バックエンド | **Hono** on AWS Lambda | Expressの約10倍高速、Edge/Lambda両対応 |
+| インフラ管理 | **AWS CDK** (TypeScript) | インフラをTypeScriptでコード化 |
+| API管理 | **Amazon API Gateway** | スロットリング・認証オフロード |
+| データベース | **Amazon Aurora Serverless v2** | PostgreSQL互換・オートスケール |
+| キャッシュ | **Amazon ElastiCache for Valkey** | Redis互換・AWSマネージド |
+| ストレージ | **Amazon S3** + **CloudFront** | CDN配信付きファイル保存 |
+| AI | **Amazon Bedrock** (Claude 3.5 Sonnet) | AWSネイティブ生成AI |
+| 認証 | **Amazon Cognito** | マネージド認証・大学メール検証 |
+| 通知 | **Amazon SNS** + **Amazon Pinpoint** | プッシュ通知・メール |
+| リアルタイム | **AWS AppSync** (WebSocket) | マネージドWebSocketチャット |
+| イベント処理 | **Amazon SQS** + **EventBridge** | 非同期・イベント駆動 |
+| 検索 | **Amazon OpenSearch Serverless** | 楽単・過去問の全文検索 |
+| 地図 | **Amazon Location Service** | AWSネイティブ地図 |
+| 監視 | **CloudWatch** + **AWS X-Ray** | 分散トレーシング |
+| CI/CD | **AWS CodePipeline** + **CodeBuild** | AWSネイティブCI/CD |
 
 ---
 

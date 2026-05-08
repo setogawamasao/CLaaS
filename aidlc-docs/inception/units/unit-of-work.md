@@ -42,26 +42,28 @@ Phase 7: AI高度化・最適化
 
 ### Unit 1.1: プロジェクトセットアップ
 - [ ] React Native (Expo) プロジェクト初期化
-- [ ] Node.js + Express + TypeScript バックエンド初期化
-- [ ] PostgreSQL データベースセットアップ
-- [ ] Redis セットアップ
-- [ ] AWS S3 バケット作成
-- [ ] 環境変数管理（.env）
+- [ ] **Hono** + TypeScript バックエンド初期化（AWS Lambda対応）
+- [ ] **AWS CDK** プロジェクト初期化（TypeScript）
+- [ ] **Amazon Aurora Serverless v2** クラスター作成
+- [ ] **Amazon ElastiCache for Valkey** クラスター作成
+- [ ] **Amazon S3** バケット + **CloudFront** ディストリビューション作成
+- [ ] **Amazon Cognito** ユーザープール作成（大学メール検証）
+- [ ] 環境変数管理（**AWS Secrets Manager**）
 
 ### Unit 1.2: データベース基盤
-- [ ] マイグレーション管理ツール導入（Prisma or Knex）
+- [ ] **Prisma** ORM導入（Aurora Serverless v2接続）
 - [ ] users テーブル作成
 - [ ] universities / faculties / departments テーブル作成
 - [ ] courses テーブル作成
 - [ ] 日本国内大学データの初期投入
+- [ ] **Amazon OpenSearch Serverless** インデックス設計
 
-### Unit 1.3: 認証サービス（Auth Service）
-- [ ] ユーザー登録API（メール確認付き）
-- [ ] ログインAPI（JWT発行）
-- [ ] ログアウトAPI
-- [ ] パスワードリセットAPI
-- [ ] ログイン失敗ロックアウト（Redis）
+### Unit 1.3: 認証サービス（Amazon Cognito）
+- [ ] Cognito ユーザープール設定（大学メール検証）
+- [ ] Hono + Cognito JWT検証ミドルウェア
+- [ ] ログイン失敗ロックアウト（ElastiCache for Valkey）
 - [ ] プロフィール更新API
+- [ ] API Gateway + Cognito Authorizer設定
 
 **完了条件**: ユーザーが大学メールで登録・ログインできる
 
@@ -94,14 +96,14 @@ Phase 7: AI高度化・最適化
 - [ ] 著作権侵害通報API
 
 ### Unit 2.4: シラバス解析サービス（Syllabus Analyzer Service）
-- [ ] PDFテキスト抽出
-- [ ] OpenAI GPT-4o API連携
+- [ ] PDFテキスト抽出（**AWS Textract**）
+- [ ] **Amazon Bedrock** (Claude 3.5 Sonnet) API連携
 - [ ] 難易度スコア算出（1-10）
 - [ ] 解析結果保存・表示API
 - [ ] シラバスオブジェクトのJSON変換（ラウンドトリップ）
 
 ### Unit 2.5: AI自動時間割生成（Timetable Generator Service）
-- [ ] 時間割生成API（OpenAI GPT-4o連携）
+- [ ] 時間割生成API（**Amazon Bedrock** 連携）
 - [ ] 3パターン以上の候補生成
 - [ ] 半期予定表自動生成
 - [ ] 時間割手動編集API
@@ -116,23 +118,24 @@ Phase 7: AI高度化・最適化
 **目標**: クレジットの発行・消費・管理システムを実装する
 
 ### Unit 3.1: トークンサービス（Token Service）
-- [ ] クレジット残高管理（PostgreSQL）
+- [ ] クレジット残高管理（Aurora Serverless v2）
 - [ ] クレジット加算API（各行動に対応）
 - [ ] クレジット消費API（残高チェック付き）
 - [ ] 取引履歴API
 - [ ] 不正検出ロジック（重複投稿・自己評価）
 - [ ] 投稿削除時のクレジット回収
+- [ ] **Amazon EventBridge** によるクレジット付与イベント処理
 
 ### Unit 3.2: 出席票管理（Ticket Manager Service）
 - [ ] QRコード生成（Ticket_Code埋め込み）
 - [ ] 出席票発行API
 - [ ] 出席票検証API（有効期限・使用済み・自己承認チェック）
 - [ ] 承認時のクレジット付与
-- [ ] レート制限（Redis）
+- [ ] レート制限（**ElastiCache for Valkey**）
 - [ ] 大量発行の不正検出
 
 ### Unit 3.3: 通知サービス（Notification Service）
-- [ ] Firebase Cloud Messaging連携
+- [ ] **Amazon SNS** + **Amazon Pinpoint** 連携
 - [ ] プッシュ通知送信
 - [ ] アプリ内通知
 - [ ] 通知設定管理API
@@ -153,7 +156,7 @@ Phase 7: AI高度化・最適化
 - [ ] コミュニティ検索API
 
 ### Unit 4.2: チャットサービス（Chat Service）
-- [ ] Socket.io リアルタイムチャット
+- [ ] **AWS AppSync** WebSocket リアルタイムチャット
 - [ ] 1対1チャットセッション
 - [ ] コミュニティグループチャット
 - [ ] メッセージ通報・非表示
@@ -202,11 +205,11 @@ Phase 7: AI高度化・最適化
 
 ### Unit 6.2: 分析サービス（Analytics Service）
 - [ ] Data_Consent管理API（オプトイン）
-- [ ] 空きコマ統計集計バッチ（24時間ごと）
+- [ ] 空きコマ統計集計バッチ（**Amazon EventBridge Scheduler** で24時間ごと）
 - [ ] 匿名化・k-匿名性チェック（5名未満非提供）
 - [ ] 企業向け統計API
-- [ ] CSVエクスポート
-- [ ] Redisキャッシュ（TTL: 24時間）
+- [ ] CSVエクスポート（**S3** 署名付きURL）
+- [ ] **ElastiCache for Valkey** キャッシュ（TTL: 24時間）
 
 **完了条件**: 企業がクーポン発行・空きコマ統計閲覧できる
 
@@ -224,7 +227,7 @@ Phase 7: AI高度化・最適化
 - [ ] 読了時間ベースの書籍推薦
 
 ### Unit 7.2: 地図サービス（Map Service）
-- [ ] Google Maps API連携
+- [ ] **Amazon Location Service** 連携
 - [ ] 近隣施設検索（映画館・美術館・カフェ等）
 - [ ] 施設詳細表示
 
@@ -232,6 +235,12 @@ Phase 7: AI高度化・最適化
 - [ ] 2学期目以降の課金フロー
 - [ ] Stripe決済API連携
 - [ ] 課金状態管理
+
+### Unit 7.4: 監視・可観測性
+- [ ] **AWS X-Ray** 分散トレーシング設定
+- [ ] **CloudWatch** ダッシュボード構築
+- [ ] **CloudWatch Alarms** アラート設定
+- [ ] **AWS CodePipeline** + **CodeBuild** CI/CD構築
 
 **完了条件**: 全機能が統合されて動作する
 
