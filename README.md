@@ -129,6 +129,48 @@ CLaaS — ぼっち大学生をダメにする7つの仕組み
 
 ---
 
+## システム概要図
+
+```mermaid
+flowchart LR
+    USER["👨‍🎓 大学生"]
+    COMPANY["🏢 企業"]
+    MOBILE["📱 CLaaS App\nReact Native"]
+
+    subgraph AWS["☁️ AWS Cloud"]
+        COGNITO["🔐 Cognito\n認証"]
+        APIGW["🛡️ API Gateway\nHTTP API"]
+        LAMBDA["⚡ Lambda + Hono\n17サービス"]
+        AI["🤖 Bedrock\nClaude 3.5"]
+        DB["🗄️ Aurora\nServerless v2"]
+        CACHE["⚡ ElastiCache\nValkey"]
+        S3["📦 S3 + CloudFront\nファイル・CDN"]
+        SEARCH["🔍 OpenSearch\n全文検索"]
+        WS["💬 AppSync\nWebSocket"]
+        EVENT["📨 EventBridge\n+ SQS"]
+        PUSH["🔔 SNS + Pinpoint\nプッシュ通知"]
+    end
+
+    PAYMENT["💳 Stripe\n決済"]
+
+    USER -->|楽単・過去問・マッチング| MOBILE
+    COMPANY -->|クーポン・統計| MOBILE
+    MOBILE -->|認証| COGNITO
+    MOBILE -->|REST API| APIGW
+    MOBILE -->|リアルタイム| WS
+    APIGW --> LAMBDA
+    LAMBDA --> AI
+    LAMBDA --> DB
+    LAMBDA --> CACHE
+    LAMBDA --> S3
+    LAMBDA --> SEARCH
+    LAMBDA --> EVENT
+    EVENT --> PUSH
+    LAMBDA --> PAYMENT
+```
+
+---
+
 ## 技術スタック
 
 > AWSネイティブ構成 + Hono によるサーバーレスアーキテクチャ
