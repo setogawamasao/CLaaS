@@ -1,4 +1,4 @@
-# 🎓 CLaaS — Campus Life as a Service
+# 🎓 CLaaS（クラース） — Campus Life as a Service
 
 > 大学生活のすべてを、サービス化する。
 
